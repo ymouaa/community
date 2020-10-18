@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress ALL -->
+<mapper namespace="com.ang.springboot_es.dao.PostTagMapper">
+
+	<sql id="selectFields">
+		post_id,user_id,title,content,type,status,create_time,comment_count,score,tags
+	</sql>
+
+	<sql id="midtable">
+		tag_post
+	</sql>
+
+	<select id="selectPostsByTagId" resultType="DiscussPost">
+		select
+		<include refid="selectFields"></include>
+		from tag_post,discuss_post
+		where tag_id = #{tagId} and discuss_post.id = post_id
+		<if test="mode==0"> order by post_id desc </if>
+		<if test="mode==1"> order by score, post_id desc </if>
+		limit #{offset},#{limit}
+	</select>
+
+	<select id="selectPostCountByTag" resultType="int">
+		select count(*)
+		from
+		<include refid="midtable"></include>
+		where tag_id = #{tagId}
+	</select>
+
+	<insert id="insertPostTag" parameterType="int">
+		insert into tag_post values(null, #{tagId}, #{postId})
+	</insert>
+
+</mapper>

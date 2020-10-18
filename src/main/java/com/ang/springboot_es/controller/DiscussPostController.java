@@ -2,14 +2,12 @@ package com.ang.springboot_es.controller;
 
 import com.ang.springboot_es.entity.*;
 import com.ang.springboot_es.event.EventProducer;
-import com.ang.springboot_es.service.CommentService;
-import com.ang.springboot_es.service.DiscussPostService;
-import com.ang.springboot_es.service.LikeService;
-import com.ang.springboot_es.service.UserService;
+import com.ang.springboot_es.service.*;
 import com.ang.springboot_es.util.DemoConstant;
 import com.ang.springboot_es.util.DemoUtil;
 import com.ang.springboot_es.util.HostHolder;
 import com.ang.springboot_es.util.RedisKeyUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -43,23 +41,38 @@ public class DiscussPostController implements DemoConstant {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private TagService tagService;
+
 
     // 发帖
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
-    public String addDiscussPost(String title, String content) {
+    public String addDiscussPost(String title, String content, String tags) {
         User user = hostHolder.getUser();
         if (user == null) {
             return DemoUtil.getJSONString(403, "您还没有登录");
         }
+
         DiscussPost discussPost = new DiscussPost();
         discussPost.setUserId(user.getId());
         discussPost.setContent(content);
         discussPost.setTitle(title);
         discussPost.setCreateTime(new Date());
+        discussPost.setTags(tags);
         discussPostService.addDiscussPost(discussPost);
 
-        //发帖事件
+        // 处理帖子与标签的关联 更新标签的记录 新的标签就创建
+        if (!StringUtils.isEmpty(tags)) {
+            String[] tagList = tags.split(",");
+            if (tagList.length > 0) {
+                for (String name : tagList) {
+                    tagService.addTagIfNotExist(name,discussPost.getId());
+                }
+            }
+        }
+
+        // 发帖事件
         Event event = new Event();
         event.setTopic(TOPIC_PUBLISH);
         event.setUserId(user.getId());
@@ -69,6 +82,7 @@ public class DiscussPostController implements DemoConstant {
 
         producer.fireEvent(event);
 
+        // 帖子分数
         String redisKey = RedisKeyUtil.getPostKey();
         redisTemplate.opsForSet().add(redisKey, discussPost.getId());
 
@@ -216,4 +230,7 @@ public class DiscussPostController implements DemoConstant {
 
         return DemoUtil.getJSONString(0);
     }
+
+
+
 }

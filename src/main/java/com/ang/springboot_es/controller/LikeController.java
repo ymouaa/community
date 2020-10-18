@@ -1,6 +1,5 @@
 package com.ang.springboot_es.controller;
 
-
 import com.ang.springboot_es.entity.Event;
 import com.ang.springboot_es.entity.User;
 import com.ang.springboot_es.event.EventProducer;
@@ -20,63 +19,62 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class LikeController implements DemoConstant {
 
-    @Autowired
-    private LikeService likeService;
+	@Autowired
+	private LikeService likeService;
 
-    @Autowired
-    private HostHolder hostHolder;
+	@Autowired
+	private HostHolder hostHolder;
 
-    @Autowired
-    private DiscussPostService discussPostService;
+	@Autowired
+	private DiscussPostService discussPostService;
 
-    @Autowired
-    private CommentService commentService;
+	@Autowired
+	private CommentService commentService;
 
-    @Autowired
-    private EventProducer eventProducer;
+	@Autowired
+	private EventProducer eventProducer;
 
-    @Autowired
-    private RedisTemplate redisTemplate;
+	@Autowired
+	private RedisTemplate redisTemplate;
 
-    @RequestMapping(path = "/like", method = RequestMethod.POST)
-    @ResponseBody
-    public String like(int entityType, int entityId, int entityUserId, int postId) {
-        User user = hostHolder.getUser();
-        // 点赞
-        likeService.like(user.getId(), entityType, entityId, entityUserId);
+	@RequestMapping(path = "/like", method = RequestMethod.POST)
+	@ResponseBody
+	public String like(int entityType, int entityId, int entityUserId, int postId) {
+		User user = hostHolder.getUser();
+		// 点赞
+		likeService.like(user.getId(), entityType, entityId, entityUserId);
 
-        long likeCount = likeService.findEntityLikeCount(entityType, entityId);
-        int likeStatus = likeService.findEntityLikeStatus(user.getId(), entityType, entityId);
-        Map<String, Object> map = new HashMap<>();
-        map.put("likeCount", likeCount);
-        map.put("likeStatus", likeStatus);
+		long likeCount = likeService.findEntityLikeCount(entityType, entityId);
+		int likeStatus = likeService.findEntityLikeStatus(user.getId(), entityType, entityId);
+		Map<String, Object> map = new HashMap<>();
+		map.put("likeCount", likeCount);
+		map.put("likeStatus", likeStatus);
+		if (likeStatus == 1) {
+			// 触发点赞事件 自己赞自己不发通知
+			if (user.getId() != entityUserId) {
+				String redisKey = RedisKeyUtil.getTempKey(user.getId(), entityId, entityType, TOPIC_LIKE);
+				if (redisTemplate.opsForValue().setIfAbsent(redisKey, 1, 60, TimeUnit.SECONDS)) {
+					Event event = new Event().setTopic(TOPIC_LIKE).setUserId(user.getId()).setEntityType(entityType)
+							.setEntityId(entityId).setEntityUserId(entityUserId)
+							// 不管点赞的是帖子还是评论 都跳到帖子的详情页面
+							.setData("postId", postId);
+					eventProducer.fireEvent(event);
+				}
+			}
+		}
+		// 计算帖子分数
+		if (entityType == ENTITY_TYPE_DISCUSSPOST) { 
+			String redisKey = RedisKeyUtil.getPostKey();
+			redisTemplate.opsForSet().add(redisKey, postId);
+		}
 
-        if (likeStatus == 1) {
-            // 触发点赞事件 自己赞自己不发通知
-            if (user.getId() != entityUserId) {
-                Event event = new Event().setTopic(TOPIC_LIKE)
-                        .setUserId(user.getId())
-                        .setEntityType(entityType)
-                        .setEntityId(entityId)
-                        .setEntityUserId(entityUserId)
-                        // 点赞的是帖子还是评论 都跳到帖子的详情页面
-                        .setData("postId", postId);
-                eventProducer.fireEvent(event);
-            }
-        }
+		return DemoUtil.getJSONString(0, null, map);
 
-
-        if (entityType == ENTITY_TYPE_DISCUSSPOST) {
-            String redisKey = RedisKeyUtil.getPostKey();
-            redisTemplate.opsForSet().add(redisKey, postId);
-        }
-
-        return DemoUtil.getJSONString(0, null, map);
-
-    }
+	}
 
 }

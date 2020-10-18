@@ -15,9 +15,10 @@ import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAu
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
-
+//
 @SpringBootApplication(exclude = {
         KafkaAutoConfiguration.class})
+//@SpringBootApplication
 public class SpringbootEsApplication {
 
 

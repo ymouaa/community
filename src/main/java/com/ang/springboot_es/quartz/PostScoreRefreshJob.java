@@ -41,13 +41,11 @@ public class PostScoreRefreshJob implements Job, DemoConstant {
     private static final Date epoch;
 
     static {
-
         try {
             epoch = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2014-08-01 00:00:00");
         } catch (ParseException e) {
             throw new RuntimeException("初始化纪元时间失败", e);
         }
-
     }
 
 
@@ -55,7 +53,6 @@ public class PostScoreRefreshJob implements Job, DemoConstant {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         String redisKey = RedisKeyUtil.getPostKey();
         BoundSetOperations operations = redisTemplate.boundSetOps(redisKey);
-
 
         if (operations.size() == 0) {
             logger.info("[任务取消] 没有需要刷新的帖子");
@@ -89,7 +86,7 @@ public class PostScoreRefreshJob implements Job, DemoConstant {
 
         // 权重
         double w = (wonderful ? 75 : 0) + commentCount * 10 + likeCount * 2;
-        // 分数=权重+距离天数
+        // 分数 = 权重 + 距离天数
         double score = Math.log10(Math.max(w, 1)) + (post.getCreateTime().getTime() - epoch.getTime()) / (1000 * 3600 * 24);
 
         // 更新帖子分数

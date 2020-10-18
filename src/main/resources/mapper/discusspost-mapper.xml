@@ -5,10 +5,10 @@
 <!--suppress ALL -->
 <mapper namespace="com.ang.springboot_es.dao.DiscussPostMapper">
     <sql id="selectFields">
-      id,user_id,title,content,type,status,create_time,comment_count,score
+      id,user_id,title,content,type,status,create_time,comment_count,score,tags
     </sql>
     <sql id="insertFields">
-        user_id,title,content,type,status,create_time,comment_count,score
+        user_id,title,content,type,status,create_time,comment_count,score,tags
     </sql>
     <select id="selectDiscussPost" resultType="DiscussPost">
         select
@@ -51,7 +51,7 @@
     <insert id="insertDiscussPost" parameterType="DiscussPost" keyProperty="id">
         insert into discuss_post (<include refid="insertFields"></include>)
         values(
-        #{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score}
+        #{userId},#{title},#{content},#{type},#{status},#{createTime},#{commentCount},#{score},#{tags}
         )
     </insert>
 

@@ -91,7 +91,7 @@ public class EventConsumer implements DemoConstant {
         message.setToId(event.getEntityUserId());
         message.setConversationId(event.getTopic());
         message.setCreateTime(new Date());
-
+        
         Map<String, Object> content = new HashMap<>();
         content.put("userId", event.getUserId());
         content.put("entityType", event.getEntityType());
@@ -171,10 +171,8 @@ public class EventConsumer implements DemoConstant {
         }
         // 上传图片到七牛云
         // 启动定时器，监视图片，一旦生成，就上传
-
-        //什么时候停止呢？
-        //执行体内，某个条件达成 用future来控制
-
+        // 什么时候停止呢？
+        // 执行体内，某个条件达成 用future来控制
         UploadTask task = new UploadTask(filename, suffix);
         Future future
                 = taskScheduler.scheduleAtFixedRate(task, 500);
@@ -183,6 +181,7 @@ public class EventConsumer implements DemoConstant {
 
     }
 
+    // 上传任务
     class UploadTask implements Runnable {
 
         private String filename;

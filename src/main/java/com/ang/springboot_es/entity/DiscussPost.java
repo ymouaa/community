@@ -42,6 +42,9 @@ public class DiscussPost {
     @Field(type = FieldType.Double)
     private double score;
 
+    @Field(type = FieldType.Text)
+    private String tags;
+
 
     public int getId() {
         return id;
@@ -115,6 +118,14 @@ public class DiscussPost {
         this.score = score;
     }
 
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
+
     @Override
     public String toString() {
         return "DiscussPost{" +
@@ -127,6 +138,7 @@ public class DiscussPost {
                 ", createTime=" + createTime +
                 ", commentCount=" + commentCount +
                 ", score=" + score +
+                ", tags='" + tags + '\'' +
                 '}';
     }
 }

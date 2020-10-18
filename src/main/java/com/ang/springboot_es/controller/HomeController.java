@@ -24,63 +24,71 @@ import com.ang.springboot_es.util.HostHolder;
 @Controller
 public class HomeController implements DemoConstant {
 
-    @Autowired
-    private UserService userService;
+	@Autowired
+	private UserService userService;
 
-    @Autowired
-    private DiscussPostService discussPostService;
+	@Autowired
+	private DiscussPostService discussPostService;
 
-    @Autowired
-    private LikeService likeService;
+	@Autowired
+	private LikeService likeService;
 
+	@Autowired
+	private HostHolder hostHolder;
 
-    @Autowired
-    private HostHolder hostHolder;
+	@RequestMapping(path = "/error", method = RequestMethod.GET)
+	public String getErrorPage() {
+		return "/error/500";
+	}
 
-    @RequestMapping(path = "/error", method = RequestMethod.GET)
-    public String getErrorPage() {
-        return "/error/500";
-    }
+	@RequestMapping(path = "/denied", method = RequestMethod.GET)
+	public String getDeniedPage() {
+		return "/error/404";
+	}
 
-    @RequestMapping(path = "/denied", method = RequestMethod.GET)
-    public String getDeniedPage() {
-        return "/error/404";
-    }
+	@RequestMapping(path = "/index", method = RequestMethod.GET)
+	public String getIndexPage(Model model, Page page, @RequestParam(defaultValue = "0") int orderMode) {
+		// page自动放到Model中 thymeleaf中可以直接用
+		// springmvc会自动实例化Model和Page，并将Page注入Model
+		// 所以在thymeleaf中可以直接访问Page对象中的数据
+		page.setRows(discussPostService.findDiscussPostRows(0));
+		page.setPath("/index?orderMode=" + orderMode);
 
-    @RequestMapping(path = "/index", method = RequestMethod.GET)
-    public String getIndexPage(Model model, Page page, @RequestParam(defaultValue = "0") int orderMode) {
-        // page自动放到Model中 thymeleaf中可以直接用
-        // springmvc会自动实例化Model和Page，并将Page注入Model
-        // 所以在thymeleaf中可以直接访问Page对象中的数据
-        page.setRows(discussPostService.findDiscussPostRows(0));
-        page.setPath("/index?orderMode=" + orderMode);
+		List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
+		List<Map<String, Object>> discussPosts = new ArrayList<>();
+		if (list != null) {
+			for (DiscussPost post : list) {
+				Map<String, Object> map = new HashMap<>();
+				String tags = post.getTags();
+				List<String> tagList = new ArrayList<>();
+				if (tags != null) {
+					String[] tagString = tags.split(",");
+					for (int i = 0; i < tagString.length; i++) {
+						tagList.add(tagString[i]);
+					}
+				}
+				post.setTags("");
+				map.put("tags", tagList);
+				map.put("post", post);
+				User user = userService.findUserById(post.getUserId());
+				map.put("user", user);
 
-        List<DiscussPost> list = discussPostService.findDiscussPosts(0, page.getOffset(), page.getLimit(), orderMode);
-        List<Map<String, Object>> discussPosts = new ArrayList<>();
-        if (list != null) {
-            for (DiscussPost post : list) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("post", post);
-                User user = userService.findUserById(post.getUserId());
-                map.put("user", user);
+				// 帖子的点赞
+				long postLikeCount = likeService.findEntityLikeCount(ENTITY_TYPE_DISCUSSPOST, post.getId());
 
-                // 帖子的点赞
-                long postLikeCount = likeService.findEntityLikeCount(ENTITY_TYPE_DISCUSSPOST, post.getId());
+				// 帖子的点赞状态
+				int postLikeStatus = hostHolder.getUser() == null ? 0
+						: likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_DISCUSSPOST,
+								post.getId());
 
-                // 帖子的点赞状态
-                int postLikeStatus = hostHolder.getUser() == null ? 0
-                        : likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_DISCUSSPOST,
-                        post.getId());
-
-                map.put("postLikeCount", postLikeCount);
-                map.put("postLikeStatus", postLikeStatus);
-                discussPosts.add(map);
-            }
-        }
-        model.addAttribute("discussPosts", discussPosts);
-        model.addAttribute("orderMode", orderMode);
-        return "/index";
-    }
-
+				map.put("postLikeCount", postLikeCount);
+				map.put("postLikeStatus", postLikeStatus);
+				discussPosts.add(map);
+			}
+		}
+		model.addAttribute("discussPosts", discussPosts);
+		model.addAttribute("orderMode", orderMode);
+		return "/index";
+	}
 
 }

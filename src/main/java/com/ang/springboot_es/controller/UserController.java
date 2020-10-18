@@ -1,6 +1,5 @@
 package com.ang.springboot_es.controller;
 
-
 import com.ang.springboot_es.entity.User;
 import com.ang.springboot_es.service.FollowService;
 import com.ang.springboot_es.service.LikeService;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
@@ -73,7 +71,6 @@ public class UserController implements DemoConstant {
     public String getSettingPage(Model model) {
         // 文件名
         String filename = DemoUtil.generateUUID();
-
 
         // 响应结果
         StringMap putPolicy = new StringMap();
@@ -216,13 +213,10 @@ public class UserController implements DemoConstant {
         model.addAttribute("followeeCount", followeeCount);
 
         //粉丝数量
-
-
         long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
         model.addAttribute("followerCount", followerCount);
 
         //对当前用户是否关注
-
         boolean hasFollowed = false;
         if (hostHolder.getUser() != null) {
             hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);

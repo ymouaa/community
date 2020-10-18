@@ -10,7 +10,7 @@
           href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
           crossorigin="anonymous">
     <link rel="stylesheet" th:href="@{/css/global.css}"/>
-    <link rel="stylesheet" th:href="@{/css/jquery.tagsinput.css}">
+    <link rel="stylesheet" th:href="@{/css/jquery.tagsinput.css}"/>
     <title>瓢瓢社区<!--牛客网-首页--></title>
 </head>
 <body>
@@ -88,7 +88,8 @@
                             th:class="|nav-link ${orderMode==1?'active':''}|"
                             th:href="@{/index(orderMode=1)}">最热</a></li>
                 </ul>
-                <button type="button"
+                <button id="publishButton"
+                        type="button"
                         class="btn btn-primary btn-sm position-absolute rt-0"
                         data-toggle="modal" data-target="#publishModal">我要发布
                 </button>
@@ -108,10 +109,17 @@
                         </div>
                         <div class="modal-body">
                             <form>
+                                <!-- 发表帖子窗口 -->
+                                <!-- 标题 -->
                                 <div class="form-group">
                                     <label for="recipient-name" class="col-form-label">标题：</label>
                                     <input type="text" class="form-control" id="recipient-name">
                                 </div>
+                                <!-- 标签 -->
+                                <label for="tags" class="col-form-label">标签：</label>
+                                <input name="tags" id="tags" value="" class="form-control">
+
+                                <!-- 正文 -->
                                 <div class="form-group">
                                     <label for="message-text" class="col-form-label">正文：</label>
                                     <textarea class="form-control" id="message-text" rows="15"></textarea>
@@ -153,15 +161,23 @@
                             <a th:href="@{|/discuss/detail/${map.post.id}|}" th:text="${map.post.title}">
                                 备战春招，面试刷题跟他复习，一个月全搞定！
                             </a>
-                            <span class="badge badge-secondary bg-primary" th:if="${map.post.type==1}">
-									置顶
-								</span>
-                            <span
-                                    class="badge badge-secondary bg-danger"
-                                    th:if="${map.post.status==1}">精华
-								</span>
+	                            <span class="badge badge-secondary bg-primary" th:if="${map.post.type==1}">置顶</span>
+	                            <span class="badge badge-secondary bg-danger" th:if="${map.post.status==1}">精华</span>
                             </a>
                         </h6>
+<!--                          
+						<a th:each="list:${map.tags}" th:switch="${(new java.util.Random().nextInt(3))}" 
+	                        th:href="@{|/search/tag?tagname=${list}|}">
+							    <span th:case="0" class="badge badge-warning" th:text="${list}"></span>
+								<span th:case="1" class="badge badge-info" th:text="${list}"></span>
+								<span th:case="2" class="badge badge-success" th:text="${list}"></span>
+						</a>  
+-->
+						<a th:each="list:${map.tags}"  th:href="@{|/search/tag?tagname=${list}|}" th:switch="${listStat.count}">
+							<span th:case="1" class="badge badge-warning" th:text="${list}"></span>
+							<span th:case="2" class="badge badge-info" th:text="${list}"></span>
+							<span th:case="3" class="badge badge-success" th:text="${list}"></span>
+						</a>
                         <div class="text-muted font-size-12">
                             <u class="mr-3" th:utext="${map.user.username}">寒江雪</u> 发布于<b
                                 th:text="${#dates.format(map.post.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-15
@@ -268,5 +284,7 @@
 <script th:src="@{/js/bootstrap.min.js}" crossorigin="anonymous"></script>
 <script th:src="@{/js/global.js}"></script>
 <script th:src="@{/js/index.js}"></script>
+<script th:src="@{/js/jquery.tagsinput.js}"></script>
+
 </body>
 </html>

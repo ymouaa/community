@@ -1,5 +1,8 @@
-$(function(){
+// DOM 加载完再执行
+$(function () {
     $("#publishBtn").click(publish);
+    $("#publishButton").click(tagFun);
+
 });
 
 
@@ -12,10 +15,11 @@ function publish() {
     //<input type="text" class="form-control form-control-tag" th:value="${randTags}">
     var title = $("#recipient-name").val();
     var content = $("#message-text").val();
+    var tags = $("#tags").val();
     // 发送异步请求(POST)
     $.post(
         CONTEXT_PATH + "/discuss/add",
-        {"title": title, "content": content},
+        {"title": title, "content": content, "tags":tags},
         function (data) {
             data = $.parseJSON(data);
             // 在提示框中显示返回消息
@@ -32,5 +36,14 @@ function publish() {
             }, 2000);
         }
     );
-    
+
+}
+
+function tagFun() {
+    $('#tags').tagsInput();
+    $.get(
+        CONTEXT_PATH + "/tag/rand",
+        function (data) {
+            $('#tags').importTags(data);
+        }
 }

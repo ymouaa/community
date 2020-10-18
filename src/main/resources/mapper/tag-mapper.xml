@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--suppress ALL -->
+<mapper namespace="com.ang.springboot_es.dao.TagMapper">
+
+    <sql id="selectFields">
+        id,tag_name,create_time,status,post_count,score
+    </sql>
+
+    <sql id="insertFields">
+        tag_name,create_time,status,post_count,score
+    </sql>
+
+    <select id="selectTagById" resultType="Tag">
+        select
+        <include refid="selectFields"></include>
+        from tag
+        where id = #{id}
+    </select>
+
+    <select id="selectTagByName" resultType="Tag">
+        select
+        <include refid="selectFields"></include>
+        from tag
+        where tag_name = #{name}
+    </select>
+
+    <insert id="insertTag" parameterType="Tag" keyProperty="id">
+        insert into tag
+        (<include refid="insertFields"></include>)
+        values(#{tagName}, #{createTime}, #{status}, #{postCount}, #{score})
+    </insert>
+
+    <update id="updateStatus">
+        update tag set status = #{status} where id = #{id}
+    </update>
+
+    <update id="updatePostCount">
+        update tag set post_count = #{count} where id = #{id}
+    </update>
+
+    <update id="updateScore">
+        update tag set score = #{score} where id = #{id}
+    </update>
+
+    <select id="selectTagRand" resultType="tag">
+        select
+        <include refid="selectFields"></include>
+        from tag
+        order by rand() limit #{count}
+    </select>
+
+</mapper>

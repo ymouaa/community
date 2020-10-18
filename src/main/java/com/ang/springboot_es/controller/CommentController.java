@@ -43,7 +43,6 @@ public class CommentController implements DemoConstant {
     @RequestMapping(value = "/add/{discussPostId}", method = RequestMethod.POST)
     public String addComment(@PathVariable("discussPostId") int discussPostId, Comment comment) {
         comment.setUserId(hostHolder.getUser().getId());
-        comment.setStatus(0);// 0代表有效的
         comment.setCreateTime(new Date());
         commentService.addComment(comment);
 
